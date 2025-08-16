@@ -4,9 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "run-p dev:*",
-    "dev:nfc-charm": "pnpx http-server ./nfc-charm -o -p 3000",
-    "dev:secret": "pnpx http-server ./secret -o -p 3001"
+    "dev": "pnpx http-server . -o -p 3000"
   },
   "keywords": [],
   "author": "",
