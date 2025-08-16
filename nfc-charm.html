@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFCお守り作成</title>
+<style>
+body{font-family:sans-serif;margin:1em;max-width:600px;}
+input,button{font-size:1rem;width:100%;padding:.6em;margin-top:.5em;box-sizing:border-box;}
+#result{margin-top:1em;word-break:break-all;}
+#toast{position:fixed;bottom:1em;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:.5em 1em;border-radius:4px;opacity:0;transition:opacity .3s;}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<h1>NFCお守り作成</h1>
+<p>トークンを入力し、URLを生成してNFCタグに書き込みます。</p>
+<input id="token" placeholder="token">
+<button id="make">URL生成</button>
+<div id="result"></div>
+<div id="writeArea" style="display:none;">
+  <button id="write">タグに書き込む</button>
+</div>
+<div id="fallback" style="display:none;">
+  <p>Web NFCが利用できません。このURLをアプリで書き込んでください。</p>
+</div>
+<div id="toast"></div>
+<script>
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='show';
+  setTimeout(()=>t.className='',3000);
+}
+const tokenInput=document.getElementById('token');
+const result=document.getElementById('result');
+let url='';
+document.getElementById('make').onclick=()=>{
+  const t=encodeURIComponent(tokenInput.value.trim());
+  if(!t){showToast('トークンを入力してください');return;}
+  const u=new URL('secret.html', location.href);
+  u.searchParams.set('t', t);
+  url=u.toString();
+  result.innerHTML='<a href="'+url+'">'+url+'</a>';
+  if('NDEFReader' in window){
+    document.getElementById('writeArea').style.display='block';
+    document.getElementById('fallback').style.display='none';
+  }else{
+    document.getElementById('writeArea').style.display='none';
+    document.getElementById('fallback').style.display='block';
+  }
+};
+document.getElementById('write').onclick=async()=>{
+  try{
+    const writer=new NDEFReader();
+    await writer.write({records:[{recordType:'url',data:url}]});
+    showToast('書き込み成功');
+  }catch(e){
+    if(e.name==='NotAllowedError'){
+      showToast('NFCの権限が必要です');
+    }else{
+      showToast('書き込み失敗: '+e.message);
+    }
+  }
+};
+</script>
+</body>
+</html>
